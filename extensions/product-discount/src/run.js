@@ -12,7 +12,7 @@ import { DiscountApplicationStrategy } from "../generated/api";
  * @type {FunctionRunResult}
  */
 const EMPTY_DISCOUNT = {
-  discountApplicationStrategy: DiscountApplicationStrategy.All, // Apply all valid discounts
+  discountApplicationStrategy: DiscountApplicationStrategy.All, 
   discounts: [],
 };
 
@@ -21,13 +21,11 @@ const EMPTY_DISCOUNT = {
  * @returns {FunctionRunResult}
  */
 export function run(input) {
-  // Validate the input structure
   if (!input || !input.cart || !Array.isArray(input.cart.lines)) {
     console.error("Invalid input structure");
     return EMPTY_DISCOUNT;
   }
 
-  // Filter cart lines where the product has a metafield and is tagged
   const eligibleLines = input.cart.lines.filter((line) => {
     const product = line.merchandise?.product;
     return product && 
@@ -44,7 +42,6 @@ export function run(input) {
 
   console.log(`Eligible products found: ${eligibleLines.length}`);
 
-  // Generate discount objects
   const discounts = [];
   
   for (const line of eligibleLines) {
@@ -54,10 +51,9 @@ export function run(input) {
 
       if (!Array.isArray(tiers) || tiers.length === 0) {
         console.warn(`Invalid discount tiers for product ${product.id}`);
-        continue; // Skip invalid entries
+        continue; 
       }
 
-      // Find all applicable tiers first
       const applicableTiers = [];
       for (const tier of tiers) {
         if (
@@ -73,13 +69,11 @@ export function run(input) {
         }
       }
 
-      // Sort by discount value (descending) & take the highest
       if (applicableTiers.length === 0) {
         console.warn(`No applicable discount for product ${product.id}`);
         continue;
       }
 
-      // Sort and get highest discount
       applicableTiers.sort((a, b) => b.discount - a.discount);
       const applicableTier = applicableTiers[0];
 
@@ -87,12 +81,11 @@ export function run(input) {
 
       discounts.push({
         targets: [{ cartLine: { id: line.id } }],
-        value: { percentage: { value: applicableTier.discount.toString() } }, // Ensure it's a string
+        value: { percentage: { value: applicableTier.discount.toString() } }, 
         message: applicableTier.message || `Discount applied: ${applicableTier.discount}%`,
       });
     } catch (error) {
       console.error(`Error processing line: ${error.message}`);
-      // Continue processing other lines even if one fails
     }
   }
 
@@ -100,6 +93,6 @@ export function run(input) {
 
   return {
     discounts,
-    discountApplicationStrategy: DiscountApplicationStrategy.All, // Apply all discounts
+    discountApplicationStrategy: DiscountApplicationStrategy.All,
   };
 }
